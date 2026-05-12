@@ -1,6 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react'
+
+/** Подставьте свои данные — структура как на invitelove.ru/love_is */
+const COUPLE_TITLE = 'TRUE LOVE'
 
 const EVENT_DATE = {
   day: '25',
@@ -8,154 +18,273 @@ const EVENT_DATE = {
   year: '26',
 } as const
 
-const EVENT_DATE_LABEL = `${EVENT_DATE.day} | ${EVENT_DATE.month} | ${EVENT_DATE.year}`
+const EVENT_DATE_LABEL = `${EVENT_DATE.day}.${EVENT_DATE.month}.20${EVENT_DATE.year}`
+
+const VENUE = {
+  name: 'Horse Village',
+  lines: [
+    'Ростовская область, Азовский район,',
+    'Обильненское сельское поселение',
+  ],
+  mapQuery:
+    'Horse Village Ростовская область, Азовский район, Обильненское сельское поселение',
+} as const
+
+const OPEN_ENVELOPE_MS = 1400
+const PRELOADER_MS = 1450
 
 const MUSIC_STORAGE_KEY = 'true-love:music-enabled'
 
 const schedule = [
-  {
-    time: "16:00",
-    title: "Сбор гостей",
-    description:
-      "Собираясь на торжество, возьмите с собой улыбки и хорошее настроение.",
-  },
-  {
-    time: "16:30",
-    title: "Церемония",
-    description: "Приготовьте платочки для трогательного момента.",
-  },
-  {
-    time: "17:00",
-    title: "Банкет",
-    description: "Время вкусной еды и развлечений.",
-  },
-  {
-    time: "21:00",
-    title: "Торт",
-    description: "Сладкая традиция, которую мы не можем пропустить.",
-  },
-  {
-    time: "22:00",
-    title: "Дискотека",
-    description: "Приятная музыка и танцы.",
-  },
-  {
-    time: "23:00",
-    title: "Happy end",
-    description: "К сожалению, даже такой волшебный вечер может подойти к концу.",
-  },
-];
+  { time: '15:30', title: 'Фуршет' },
+  { time: '16:00', title: 'Церемония' },
+  { time: '17:00', title: 'Свадебный ужин' },
+  { time: '21:45', title: 'Торт' },
+  { time: '23:00', title: 'Завершение' },
+]
 
 const drinks = [
-  "Белое вино",
-  "Красное вино",
-  "Шампанское",
-  "Водка",
-  "Коньяк",
-  "Не пью алкоголь",
-];
+  'Белое вино',
+  'Красное вино',
+  'Шампанское',
+  'Водка',
+  'Коньяк',
+  'Не пью алкоголь',
+]
 
-const dressCodeForLadies = ["бежевые", "пастельные оттенки"];
-const dressCodeForMen = ["черный низ", "белая рубашка"];
+const dressCodeForLadies = ['бежевые', 'пастельные оттенки']
+const dressCodeForMen = ['черный низ', 'белая рубашка']
 
-function Cover({
-  isOpen,
-  onOpen,
+const usePrefersReducedMotion = () => {
+  const [reduced, setReduced] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handleChange = () => setReduced(media.matches)
+
+    handleChange()
+    media.addEventListener('change', handleChange)
+
+    return () => media.removeEventListener('change', handleChange)
+  }, [])
+
+  return reduced
+}
+
+const RevealOnScroll = ({
+  children,
+  className = '',
 }: {
-  isOpen: boolean
-  onOpen: () => void
-}) {
+  children: ReactNode
+  className?: string
+}) => {
+  const ref = useRef<HTMLDivElement | null>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return
+        setVisible(true)
+      },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.06 }
+    )
+
+    observer.observe(el)
+
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <div
-      className={[
-        'fixed inset-0 z-50 grid place-items-center px-4 py-8 transition-all duration-700',
-        isOpen ? 'pointer-events-none opacity-0 blur-sm' : 'opacity-100',
-      ].join(' ')}
-      aria-hidden={isOpen}
+      ref={ref}
+      className={['inv-reveal', visible ? 'inv-reveal--visible' : '', className]
+        .filter(Boolean)
+        .join(' ')}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.92),_rgba(255,245,236,0.68)_30%,_rgba(239,228,216,0.95)_72%)]" />
-      <div className="pointer-events-none absolute left-[-10rem] top-[-8rem] h-[26rem] w-[26rem] rounded-full bg-[#d9b79f]/25 blur-3xl" />
-      <div className="pointer-events-none absolute right-[-8rem] top-[24rem] h-[22rem] w-[22rem] rounded-full bg-[#b98d72]/20 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-[-10rem] left-1/2 h-[20rem] w-[20rem] -translate-x-1/2 rounded-full bg-[#f4d9c6]/40 blur-3xl" />
-
-      <section className="relative w-full max-w-lg overflow-hidden rounded-[2.25rem] border border-[#dbc6b3] bg-[rgba(255,250,244,0.88)] shadow-[0_28px_90px_rgba(101,68,40,0.14)] backdrop-blur">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#8f6650] via-[#c7a28d] to-[#8f6650]" />
-
-        <div className="p-7 sm:p-10">
-          <div className="space-y-3 text-center">
-            <p className="text-sm font-medium uppercase tracking-[0.55em] text-[#b18c76]">
-              ВЫ ПРИГЛАШЕНЫ
-            </p>
-            <p className="text-3xl font-light tracking-[0.25em] text-[#8f6c58] sm:text-4xl">
-              НА СВАДЬБУ <span aria-hidden="true">🤎</span>
-            </p>
-          </div>
-
-          <Separator />
-
-          <div className="mx-auto grid max-w-sm gap-5 text-center">
-            <button
-              type="button"
-              className="invite-button w-full"
-              onClick={onOpen}
-              onKeyDown={(event) => {
-                if (event.key !== 'Enter' && event.key !== ' ') return
-                event.preventDefault()
-                onOpen()
-              }}
-              aria-label="Открыть приглашение"
-            >
-              ОТКРЫТЬ
-            </button>
-
-            <p className="text-xs uppercase tracking-[0.45em] text-[#a27e67]">
-              {EVENT_DATE_LABEL}
-            </p>
-          </div>
-        </div>
-      </section>
+      {children}
     </div>
   )
 }
 
-function Separator() {
-  return (
-    <div className="flex items-center gap-4 py-2 text-[#9a7a64]">
-      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#c9aa93] to-transparent" />
-      <span className="text-[0.7rem] tracking-[0.55em]">❦</span>
-      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#c9aa93] to-transparent" />
+const Preloader = ({ done }: { done: boolean }) => (
+  <div
+    className={['uc-preloader', done ? 'uc-preloader--done' : ''].join(' ')}
+    aria-live="polite"
+    aria-busy={!done}
+  >
+    <div className="px-6 text-center">
+      <p className="uc-preloader__title">Love is</p>
+      <p className="uc-preloader__sub">приглашение</p>
+      <div className="uc-preloader__heart" aria-hidden="true">
+        🤍
+      </div>
     </div>
-  );
+  </div>
+)
+
+const EnvelopeGate = ({
+  isOpen,
+  isOpening,
+  onRequestOpen,
+}: {
+  isOpen: boolean
+  isOpening: boolean
+  onRequestOpen: () => void
+}) => {
+  const envelopeClass = [
+    'inv-envelope',
+    isOpening || isOpen ? 'inv-envelope--opening' : '',
+    isOpen ? 'inv-envelope--open' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const handleKeyDownEnvelope = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    onRequestOpen()
+  }
+
+  return (
+    <div
+      className={[
+        'fixed inset-0 z-50 grid place-items-center px-4 py-10 transition-all duration-[800ms] ease-out',
+        isOpen ? 'pointer-events-none opacity-0' : 'opacity-100',
+      ].join(' ')}
+      aria-hidden={isOpen}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#fffef9_0%,#f3efe4_45%,#e8e4d6_100%)]" />
+      <div className="pointer-events-none absolute left-[-9rem] top-[-7rem] h-[22rem] w-[22rem] rounded-full bg-[#b0b074]/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-8rem] right-[-6rem] h-[20rem] w-[20rem] rounded-full bg-[#d4c4a8]/25 blur-3xl" />
+
+      <div className="relative w-full max-w-[420px]">
+        <header className="mb-8 text-center">
+          <p className="text-[0.7rem] uppercase tracking-[0.48em] text-[#6b6354]">
+            Вы приглашены
+          </p>
+          <p className="mt-3 font-light text-2xl tracking-[0.2em] text-[#3d382e] sm:text-3xl">
+            НА СВАДЬБУ <span aria-hidden="true">🤍</span>
+          </p>
+          <div className="mx-auto mt-5 h-px max-w-[12rem] inv-hero-ribbon" />
+          <p className="mt-4 text-[0.68rem] uppercase tracking-[0.38em] text-[#8a8070]">
+            {EVENT_DATE_LABEL}
+          </p>
+        </header>
+
+        <div
+          className="inv-envelope-scene mx-auto grid w-full max-w-[380px] cursor-pointer place-items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#8a8352] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f3efe4]"
+          role="button"
+          tabIndex={0}
+          aria-label="Открыть конверт с приглашением"
+          onClick={onRequestOpen}
+          onKeyDown={handleKeyDownEnvelope}
+        >
+          <div className={envelopeClass}>
+            <div className="inv-envelope__shadow" aria-hidden="true" />
+            <div className="inv-envelope__back" />
+            <div className="inv-envelope__inner">
+              <div className="inv-envelope__letter">
+                <div className="px-1">
+                  <p className="text-[0.6rem] uppercase tracking-[0.42em] text-[#9a8f7e]">
+                    ВЫ ПРИГЛАШЕНЫ
+                  </p>
+                  <p className="mt-2 text-base font-light tracking-[0.16em] text-[#2f2a22]">
+                    {COUPLE_TITLE}
+                  </p>
+                  <p className="mt-2 text-[0.62rem] uppercase tracking-[0.28em] text-[#a89880]">
+                    {EVENT_DATE_LABEL}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="inv-envelope__pocket" aria-hidden="true" />
+            <div className="inv-envelope__flap-wrap">
+              <div className="inv-envelope__flap" />
+            </div>
+            <div className="inv-envelope__seal" aria-hidden="true">
+              💌
+            </div>
+          </div>
+        </div>
+
+        <p className="inv-envelope__hint">нажмите на конверт или кнопку</p>
+
+        <div className="mt-8 flex justify-center">
+          <button
+            type="button"
+            className="invite-button min-w-[240px]"
+            onClick={(event) => {
+              event.stopPropagation()
+              onRequestOpen()
+            }}
+            aria-label="Открыть приглашение"
+          >
+            ОТКРЫТЬ
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-function SectionTitle({
-  eyebrow,
-  title,
-  subtitle,
+const LoveDivider = () => (
+  <div
+    className="mx-auto flex max-w-md items-center gap-4 py-6 text-[#a89880]"
+    aria-hidden="true"
+  >
+    <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#c4b896] to-transparent" />
+    <span className="text-[0.75rem] tracking-[0.5em]">❦</span>
+    <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#c4b896] to-transparent" />
+  </div>
+)
+
+const LoveH2 = ({
+  kicker,
+  children,
 }: {
-  eyebrow: string;
-  title: string;
-  subtitle?: string;
-}) {
-  return (
-    <div className="space-y-2 text-center">
-      <p className="text-[0.72rem] uppercase tracking-[0.45em] text-[#a27e67]">
-        {eyebrow}
+  kicker?: string
+  children: ReactNode
+}) => (
+  <div className="text-center">
+    {kicker ? (
+      <p className="text-[0.68rem] uppercase tracking-[0.42em] text-[#8a7f6a]">
+        {kicker}
       </p>
-      <h2 className="text-3xl font-semibold tracking-[0.08em] text-[#2f211a] sm:text-4xl">
-        {title}
-      </h2>
-      {subtitle ? (
-        <p className="mx-auto max-w-2xl text-sm leading-7 text-[#6f5648] sm:text-base">
-          {subtitle}
-        </p>
-      ) : null}
-    </div>
-  );
-}
+    ) : null}
+    <h2 className="mt-2 text-2xl font-normal tracking-[0.06em] text-[#2c261c] sm:text-3xl">
+      {children}
+    </h2>
+  </div>
+)
+
+const LoveCard = ({
+  children,
+  className = '',
+}: {
+  children: ReactNode
+  className?: string
+}) => (
+  <div
+    className={[
+      'rounded-2xl border border-[#e2d8c8] bg-white/90 px-6 py-6 shadow-[0_12px_40px_rgba(62,52,38,0.06)]',
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ')}
+  >
+    {children}
+  </div>
+)
 
 export default function InvitationPage() {
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const [preloaderDone, setPreloaderDone] = useState(false)
   const [isOpened, setIsOpened] = useState(false)
+  const [isOpening, setIsOpening] = useState(false)
   const [isMusicEnabled, setIsMusicEnabled] = useState(true)
   const [isMusicPlaying, setIsMusicPlaying] = useState(false)
   const [isMusicAvailable, setIsMusicAvailable] = useState(true)
@@ -169,6 +298,13 @@ export default function InvitationPage() {
   }, [])
 
   useEffect(() => {
+    const delay = prefersReducedMotion ? 200 : PRELOADER_MS
+    const timeoutId = window.setTimeout(() => setPreloaderDone(true), delay)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [prefersReducedMotion])
+
+  useEffect(() => {
     if (typeof document === 'undefined') return
 
     if (isOpened) {
@@ -176,7 +312,7 @@ export default function InvitationPage() {
       return
     }
 
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     document.documentElement.style.overflow = 'hidden'
 
     return () => {
@@ -185,23 +321,12 @@ export default function InvitationPage() {
   }, [isOpened])
 
   const mapHref = useMemo(() => {
-    const query = encodeURIComponent(
-      'Horse Village Ростовская область, Азовский район, Обильненское сельское поселение'
-    )
+    const query = encodeURIComponent(VENUE.mapQuery)
     return `https://yandex.ru/maps/?text=${query}`
   }, [])
 
-  const handleOpen = () => {
-    setIsOpened(true)
-
-    queueMicrotask(() => {
-      const detailsSection = document.getElementById('details')
-      if (!detailsSection) return
-      detailsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-
-    const shouldTryPlay = isMusicEnabled
-    if (!shouldTryPlay) return
+  const tryPlayMusic = () => {
+    if (!isMusicEnabled) return
 
     const audio = audioRef.current
     if (!audio) return
@@ -212,6 +337,33 @@ export default function InvitationPage() {
     playPromise
       .then(() => setIsMusicPlaying(true))
       .catch(() => setIsMusicPlaying(false))
+  }
+
+  const handleRequestOpen = () => {
+    if (isOpened || isOpening) return
+
+    setIsOpening(true)
+
+    const delay = prefersReducedMotion ? 50 : OPEN_ENVELOPE_MS
+    window.setTimeout(() => {
+      setIsOpened(true)
+      setIsOpening(false)
+
+      queueMicrotask(() => {
+        const start = document.getElementById('invite-start')
+        if (start) {
+          start.scrollIntoView({
+            behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            block: 'start',
+          })
+          return
+        }
+
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
+      })
+
+      tryPlayMusic()
+    }, delay)
   }
 
   const handleToggleMusic = () => {
@@ -239,7 +391,7 @@ export default function InvitationPage() {
   const musicLabel = isMusicEnabled ? 'Выключить' : 'Включить'
 
   return (
-    <main className="relative isolate overflow-hidden">
+    <main className="relative isolate min-h-screen overflow-x-hidden">
       <audio
         ref={audioRef}
         src="/Bruno Mars - Merry You.mp3"
@@ -252,516 +404,398 @@ export default function InvitationPage() {
           window.localStorage.setItem(MUSIC_STORAGE_KEY, '0')
         }}
       />
-      <Cover isOpen={isOpened} onOpen={handleOpen} />
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.92),_rgba(255,245,236,0.68)_30%,_rgba(239,228,216,0.95)_72%)]" />
-      <div className="pointer-events-none absolute left-[-10rem] top-[-8rem] h-[26rem] w-[26rem] rounded-full bg-[#d9b79f]/25 blur-3xl" />
-      <div className="pointer-events-none absolute right-[-8rem] top-[24rem] h-[22rem] w-[22rem] rounded-full bg-[#b98d72]/20 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-[-10rem] left-1/2 h-[20rem] w-[20rem] -translate-x-1/2 rounded-full bg-[#f4d9c6]/40 blur-3xl" />
+      <Preloader done={preloaderDone} />
+      <EnvelopeGate
+        isOpen={isOpened}
+        isOpening={isOpening}
+        onRequestOpen={handleRequestOpen}
+      />
 
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[2.25rem] border border-[#dbc6b3] bg-[rgba(255,250,244,0.88)] shadow-[0_28px_90px_rgba(101,68,40,0.14)] backdrop-blur">
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#8f6650] via-[#c7a28d] to-[#8f6650]" />
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,#fffdf8_0%,#f4efe6_42%,#ebe4d6_100%)]"
+        aria-hidden="true"
+      />
 
-          <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:p-10">
-            <div className="flex flex-col justify-center gap-6">
-              <div className="space-y-2 text-center lg:text-left">
-                <p className="text-2xl font-light tracking-[0.25em] text-[#8f6c58] sm:text-3xl">
-                  Вы приглашены
+      <div className="mx-auto w-full max-w-xl px-4 pb-16 pt-6 sm:px-6 sm:pt-10">
+        <div id="invite-start" className="scroll-mt-6">
+          <RevealOnScroll>
+            <header className="text-center">
+              <p className="text-[0.65rem] uppercase tracking-[0.5em] text-[#9a907c]">
+                Love is
+              </p>
+              <p className="mt-4 text-[0.72rem] uppercase tracking-[0.38em] text-[#7a7160]">
+                Вы приглашены
+              </p>
+              <h1 className="mt-3 text-3xl font-light tracking-[0.18em] text-[#2e281f] sm:text-4xl">
+                НА СВАДЬБУ <span aria-hidden="true">❤️</span>
+              </h1>
+              <p className="mt-5 text-lg tracking-[0.12em] text-[#4a4338]">
+                {EVENT_DATE_LABEL}
+              </p>
+            </header>
+          </RevealOnScroll>
+
+          <LoveDivider />
+
+          <RevealOnScroll>
+            <LoveCard>
+              <p className="text-center text-[1.05rem] leading-8 text-[#4f463a]">
+                В нашей жизни произойдёт очень важное событие — наша свадьба!
+                Позвольте пригласить вас разделить с нами радость этого дня.
+              </p>
+            </LoveCard>
+          </RevealOnScroll>
+
+          <RevealOnScroll>
+            <div className="mt-8">
+              <LoveH2 kicker="Музыка">Перед прочтением включите музыку</LoveH2>
+              <LoveCard className="mt-5 text-center">
+                <p className="text-sm leading-7 text-[#5c5348]">
+                  Если вас отвлекает музыка, её можно выключить.
                 </p>
-                <p className="text-sm uppercase tracking-[0.55em] text-[#b18c76]">
-                  НА СВАДЬБУ
-                </p>
-                <h1 className="text-5xl font-semibold leading-none tracking-[0.12em] text-[#2d1f18] sm:text-6xl">
-                  TRUE LOVE
-                </h1>
-              </div>
-
-              <Separator />
-
-              <div className="mx-auto grid w-full max-w-md gap-3 text-center lg:mx-0 lg:text-left">
-                <div className="inline-flex items-center justify-center gap-3 self-center rounded-full border border-[#d7b9a3] bg-white/75 px-5 py-2 text-[0.72rem] uppercase tracking-[0.35em] text-[#9a7460] shadow-sm lg:self-start">
-                  <span>{EVENT_DATE.day}</span>
-                  <span>|</span>
-                  <span>{EVENT_DATE.month}</span>
-                  <span>|</span>
-                  <span>{EVENT_DATE.year}</span>
-                </div>
-                <p className="text-lg font-medium leading-8 text-[#2f211a] sm:text-xl">
-                  Узнаете этих детишек?
-                </p>
-                <p className="text-base leading-8 text-[#6d5446] sm:text-[1.05rem]">
-                  Да-да, это мы!
-                  <br />
-                  Время пролетело очень быстро, представляете?
-                </p>
-                <p className="text-base leading-8 text-[#6d5446] sm:text-[1.05rem]">
-                  И вот уже совсем скоро состоится самое важное событие в нашей
-                  жизни — мы станем одной семьей!
-                </p>
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
-                <a className="invite-button" href="#details">
-                  Открыть
-                </a>
-                <a
-                  className="inline-flex items-center justify-center rounded-full border border-[#cab19d] bg-white/65 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#735341] transition hover:-translate-y-0.5 hover:bg-white"
-                  href="#rsvp"
-                >
-                  Анкета
-                </a>
-              </div>
-            </div>
-
-            <div className="relative flex items-center justify-center">
-              <div className="relative w-full max-w-[28rem] overflow-hidden rounded-[2rem] border border-[#dbc5b1] bg-[linear-gradient(180deg,#f8eadf_0%,#f3ddcf_46%,#ead1c0_100%)] p-5 shadow-[0_24px_60px_rgba(106,74,50,0.18)]">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(255,255,255,0.68),transparent_24%),radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.46),transparent_22%),radial-gradient(circle_at_50%_90%,rgba(158,112,83,0.18),transparent_32%)]" />
-
-                <div className="relative rounded-[1.7rem] border border-white/55 bg-white/38 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                  <div className="grid aspect-[4/5] place-items-center rounded-[1.35rem] border border-[#e8d7ca] bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(245,232,222,0.82))]">
-                    <div className="relative flex h-[18rem] w-[18rem] items-center justify-center sm:h-[20rem] sm:w-[20rem]">
-                      <div className="absolute left-5 top-6 h-24 w-24 rounded-full bg-[#f6e7de] blur-2xl" />
-                      <div className="absolute right-7 top-10 h-20 w-20 rounded-full bg-[#d8a98f]/40 blur-2xl" />
-                      <div className="absolute bottom-7 left-10 h-24 w-24 rounded-full bg-[#fff8f2]/70 blur-2xl" />
-
-                      <div className="absolute inset-x-6 top-10 h-28 rounded-[1.5rem] border border-[#c9a78f] bg-[#fff7f2] shadow-[0_16px_30px_rgba(95,64,42,0.14)]" />
-                      <div className="absolute inset-x-6 top-28 h-[10rem] rounded-[1.5rem] border border-[#ba947d] bg-[#ebd1bf] shadow-[0_20px_45px_rgba(95,64,42,0.2)]" />
-                      <div className="absolute inset-x-16 top-36 h-[9rem] rotate-[-8deg] rounded-[1.1rem] border border-[#d8b49d] bg-[#fff9f4] shadow-[0_18px_35px_rgba(96,65,43,0.16)]" />
-                      <div className="absolute inset-x-11 top-42 h-[6.8rem] rotate-[8deg] rounded-[1rem] border border-[#caa28d] bg-[#f4e2d6] shadow-[0_18px_35px_rgba(96,65,43,0.15)]" />
-
-                      <div className="relative z-10 flex h-36 w-36 items-center justify-center rounded-full border border-[#d4b39d] bg-[#fffaf7]/90 shadow-[0_16px_30px_rgba(110,78,50,0.12)]">
-                        <div className="text-center">
-                          <p className="text-[0.65rem] uppercase tracking-[0.45em] text-[#9a765f]">
-                            Invitation
-                          </p>
-                          <p className="mt-2 text-3xl font-semibold tracking-[0.2em] text-[#2f211b]">
-                            25
-                          </p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.4em] text-[#b28d77]">
-                            {EVENT_DATE.month} {EVENT_DATE.year}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="h-4" />
-
-        <section id="details" className="invite-section p-6 sm:p-8 lg:p-10">
-          <SectionTitle
-            eyebrow="История"
-            title="Узнаете этих детишек?"
-            subtitle="Да-да, это мы! Время пролетело очень быстро, и вот уже совсем скоро состоится самое важное событие в нашей жизни."
-          />
-          <Separator />
-          <div className="rounded-[1.25rem] border border-[#dcc6b2] bg-white/70 px-5 py-4 text-center text-sm leading-7 text-[#6f5648] sm:px-6">
-            <p>
-              Если Вас отвлекает музыка, ее можно выключить
-            </p>
-            <div className="mt-3 flex justify-center">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-full border border-[#cab19d] bg-white/65 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#735341] transition hover:-translate-y-0.5 hover:bg-white"
-                onClick={handleToggleMusic}
-                onKeyDown={(event) => {
-                  if (event.key !== 'Enter' && event.key !== ' ') return
-                  event.preventDefault()
-                  handleToggleMusic()
-                }}
-                aria-pressed={isMusicEnabled}
-                aria-label="Переключить музыку"
-                disabled={!isMusicAvailable}
-              >
-                {musicLabel}
-                {isMusicEnabled && isMusicPlaying ? (
-                  <span className="ml-3 h-2 w-2 rounded-full bg-[#8e6650]" aria-hidden="true" />
-                ) : null}
-              </button>
-            </div>
-            {isMusicAvailable ? (
-              <p className="mt-3 text-xs uppercase tracking-[0.35em] text-[#a27e67]">
-                Музыка запустится после нажатия «Открыть»
-              </p>
-            ) : (
-              <p className="mt-3 text-xs uppercase tracking-[0.35em] text-[#a27e67]">
-                Файл музыки не найден: положи его в `public/music.mp3`
-              </p>
-            )}
-          </div>
-          <div className="grid gap-6 lg:grid-cols-[1fr_0.95fr] lg:items-center">
-            <div className="space-y-4 text-center text-base leading-8 text-[#6f5648] lg:text-left">
-              <p>
-                И вот уже совсем скоро состоится самое важное событие в нашей
-                жизни — мы станем одной семьей!
-              </p>
-              <p>
-                Мы очень ждём и с удовольствием готовимся к нашему
-                незабываемому дню.
-              </p>
-            </div>
-
-            <div className="rounded-[1.6rem] border border-[#decab9] bg-[linear-gradient(180deg,#fff8f3,#f5e5d8)] p-5 shadow-[0_14px_34px_rgba(99,67,43,0.12)]">
-              <div className="flex items-center justify-between rounded-[1.2rem] border border-[#e6d6c9] bg-white/80 px-4 py-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.35em] text-[#a27e67]">
-                    Дата
-                  </p>
-                  <p className="mt-2 text-3xl font-semibold tracking-[0.22em] text-[#2d1f18]">
-                    {EVENT_DATE_LABEL}
-                  </p>
-                </div>
-                <div className="grid h-20 w-20 place-items-center rounded-full border border-[#d6bca8] bg-[#f6e6da] text-center text-[#8c6752]">
-                  <span className="text-[0.65rem] uppercase tracking-[0.45em]">
-                    Love
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="h-4" />
-
-        <section className="invite-section p-6 sm:p-8 lg:p-10">
-          <SectionTitle
-            eyebrow="Место"
-            title="Horse Village"
-            subtitle="Ростовская область, Азовский район, Обильненское сельское поселение."
-          />
-          <Separator />
-          <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-center">
-            <div className="space-y-3 text-center text-base leading-8 text-[#6f5648] lg:text-left">
-              <p className="font-medium text-[#2f211a]">
-                Horse Village Ростовская область, Азовский район,
-                <br />
-                Обильненское сельское поселение
-              </p>
-              <a
-                className="inline-flex items-center justify-center rounded-full border border-[#ceb4a0] bg-white/80 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#735341] transition hover:-translate-y-0.5 hover:bg-white"
-                href={mapHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                На карте
-              </a>
-            </div>
-
-            <div className="rounded-[1.6rem] border border-[#decab9] bg-[linear-gradient(135deg,#f3d8c5,#fff9f5_65%,#ead2c2)] p-5 shadow-[0_14px_34px_rgba(99,67,43,0.12)]">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-[1.3rem] border border-white/60 bg-[radial-gradient(circle_at_30%_35%,rgba(255,255,255,0.95),transparent_26%),radial-gradient(circle_at_70%_60%,rgba(255,255,255,0.55),transparent_20%),linear-gradient(180deg,#fefaf7,#efdbc9)]">
-                <div className="absolute inset-x-10 top-10 h-24 rounded-[999px] bg-white/40 blur-2xl" />
-                <div className="absolute bottom-6 left-6 right-6 h-16 rounded-[1.2rem] border border-[#d7b9a3] bg-white/60 shadow-[0_18px_30px_rgba(100,71,47,0.12)]" />
-                <div className="absolute left-1/2 top-8 h-[calc(100%-4rem)] w-[1px] -translate-x-1/2 bg-[#d4b29a]/80" />
-                <div className="absolute left-10 top-12 h-16 w-16 rounded-full border border-[#d5b39d] bg-[#fff8f3]" />
-                <div className="absolute right-10 top-16 h-20 w-20 rounded-full border border-[#d5b39d] bg-[#fff8f3]" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rounded-full border border-[#d9bca8] bg-white/75 px-5 py-3 text-center text-xs uppercase tracking-[0.4em] text-[#9a765f] shadow-sm">
-                    Google / Yandex map
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="h-4" />
-
-        <section className="invite-section p-6 sm:p-8 lg:p-10">
-          <SectionTitle
-            eyebrow="Программа"
-            title="Расписание дня"
-            subtitle="Короткий маршрут нашего праздничного вечера."
-          />
-          <Separator />
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {schedule.map((item) => (
-              <article
-                key={`${item.time}-${item.title}`}
-                className="rounded-[1.5rem] border border-[#d9c3b1] bg-white/75 p-5 shadow-[0_10px_24px_rgba(94,65,44,0.08)]"
-              >
-                <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[#a27e67]">
-                  {item.time}
-                </p>
-                <h3 className="mt-3 text-xl font-semibold text-[#2f211a]">
-                  {item.title}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-[#6f5648]">
-                  {item.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <div className="h-4" />
-
-        <section className="invite-section p-6 sm:p-8 lg:p-10">
-          <SectionTitle
-            eyebrow="Детали"
-            title="Пожелания"
-            subtitle="Свои тёплые слова и пожелания приносите в сердцах, а подарки - в конверте."
-          />
-          <Separator />
-          <div className="grid gap-4 lg:grid-cols-3">
-            <article className="rounded-[1.5rem] border border-[#dcc6b2] bg-[linear-gradient(180deg,#fffdf8,#f6e8db)] p-5 text-center shadow-[0_10px_24px_rgba(94,65,44,0.08)]">
-              <p className="text-lg font-semibold text-[#2f211a]">
-                Наш праздник для взрослых
-              </p>
-              <p className="mt-3 text-sm leading-7 text-[#6f5648]">
-                По возможности, оставьте детей под присмотром и погрузитесь в
-                мир романтики вместе с нами!
-              </p>
-            </article>
-            <article className="rounded-[1.5rem] border border-[#dcc6b2] bg-[linear-gradient(180deg,#fffdf8,#f6e8db)] p-5 text-center shadow-[0_10px_24px_rgba(94,65,44,0.08)]">
-              <p className="text-lg font-semibold text-[#2f211a]">
-                Без букетов
-              </p>
-              <p className="mt-3 text-sm leading-7 text-[#6f5648]">
-                Просим Вас не дарить нам цветы - сразу после свадьбы мы улетаем
-                в свадебное путешествие и не успеем насладиться их красотой.
-              </p>
-            </article>
-            <article className="rounded-[1.5rem] border border-[#dcc6b2] bg-[linear-gradient(180deg,#fffdf8,#f6e8db)] p-5 text-center shadow-[0_10px_24px_rgba(94,65,44,0.08)]">
-              <p className="text-lg font-semibold text-[#2f211a]">
-                Классический стиль
-              </p>
-              <p className="mt-3 text-sm leading-7 text-[#6f5648]">
-                Поддержите нас вашими улыбками и красивыми нарядами.
-              </p>
-            </article>
-          </div>
-        </section>
-
-        <div className="h-4" />
-
-        <section className="invite-section p-6 sm:p-8 lg:p-10">
-          <SectionTitle
-            eyebrow="Дресс-код"
-            title="Цвета и стиль"
-            subtitle="Будем благодарны, если Вы поддержите цветовую гамму нашей свадьбы."
-          />
-          <Separator />
-          <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-            <article className="rounded-[1.5rem] border border-[#dcc6b2] bg-white/75 p-5 text-center shadow-[0_10px_24px_rgba(94,65,44,0.08)]">
-              <p className="text-sm uppercase tracking-[0.35em] text-[#a27e67]">
-                Для девушек
-              </p>
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {dressCodeForLadies.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-[#d4bba8] bg-[#f4e5d9] px-4 py-2 text-sm text-[#6b5144]"
+                <div className="mt-4 flex justify-center">
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-full border border-[#c4b896] bg-[#faf8f3] px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#5a5245] transition hover:-translate-y-0.5 hover:bg-white"
+                    onClick={handleToggleMusic}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return
+                      event.preventDefault()
+                      handleToggleMusic()
+                    }}
+                    aria-pressed={isMusicEnabled}
+                    aria-label="Переключить музыку"
+                    disabled={!isMusicAvailable}
                   >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </article>
-            <article className="rounded-[1.5rem] border border-[#dcc6b2] bg-white/75 p-5 text-center shadow-[0_10px_24px_rgba(94,65,44,0.08)]">
-              <p className="text-sm uppercase tracking-[0.35em] text-[#a27e67]">
-                Для мужчин
-              </p>
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {dressCodeForMen.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-[#d4bba8] bg-[#f4e5d9] px-4 py-2 text-sm text-[#6b5144]"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-4 text-sm text-[#6f5648]">
-                Помните, что в белом должна быть только невеста :)
-              </p>
-            </article>
-          </div>
-        </section>
-
-        <div className="h-4" />
-
-        <section id="rsvp" className="invite-section p-6 sm:p-8 lg:p-10">
-          <SectionTitle
-            eyebrow="Анкета"
-            title="Ответьте, пожалуйста, на несколько вопросов, которые мы для Вас подготовили"
-            subtitle="Это поможет нам подготовить праздник с ещё большей заботой."
-          />
-          <Separator />
-
-          <form className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-[#5f473d]">
-                  ФИО
-                </span>
-                <input
-                  className="invite-field"
-                  placeholder="Напишите, пожалуйста, Ваше ФИО"
-                  type="text"
-                />
-              </label>
-
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-[#5f473d]">
-                  Ваш телефон
-                </span>
-                <input
-                  className="invite-field"
-                  placeholder="+7 (999) 999-99-99"
-                  type="tel"
-                />
-              </label>
-            </div>
-
-            <fieldset className="space-y-3 rounded-[1.5rem] border border-[#dcc6b2] bg-white/75 p-5">
-              <legend className="px-2 text-sm font-medium text-[#5f473d]">
-                Сможете ли присутствовать на нашем торжестве?
-              </legend>
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                {["Я с удовольствием приду", "К сожалению, не смогу присутствовать"].map(
-                  (item) => (
-                    <label
-                      key={item}
-                      className="inline-flex cursor-pointer items-center gap-3 rounded-full border border-[#d6c0ad] bg-[#fffaf6] px-4 py-3 text-sm text-[#5f473d]"
-                    >
-                      <input
-                        name="attendance"
-                        type="radio"
-                        className="h-4 w-4 border-[#b38c74] text-[#8e6650] accent-[#8e6650]"
+                    {musicLabel}
+                    {isMusicEnabled && isMusicPlaying ? (
+                      <span
+                        className="ml-3 h-2 w-2 rounded-full bg-[#8a8352]"
+                        aria-hidden="true"
                       />
-                      <span>{item}</span>
-                    </label>
-                  )
+                    ) : null}
+                  </button>
+                </div>
+                {isMusicAvailable ? (
+                  <p className="mt-3 text-[0.65rem] uppercase tracking-[0.32em] text-[#9a907c]">
+                    Музыка запускается после открытия конверта
+                  </p>
+                ) : (
+                  <p className="mt-3 text-[0.65rem] uppercase tracking-[0.32em] text-[#9a907c]">
+                    Файл музыки не найден в public
+                  </p>
                 )}
-              </div>
-            </fieldset>
-
-            <fieldset className="space-y-3 rounded-[1.5rem] border border-[#dcc6b2] bg-white/75 p-5">
-              <legend className="px-2 text-sm font-medium text-[#5f473d]">
-                Что предпочитаете из напитков?
-              </legend>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {drinks.map((item) => (
-                  <label
-                    key={item}
-                    className="inline-flex cursor-pointer items-center gap-3 rounded-[1rem] border border-[#d6c0ad] bg-[#fffaf6] px-4 py-3 text-sm text-[#5f473d]"
-                  >
-                    <input
-                      className="h-4 w-4 accent-[#8e6650]"
-                      type="checkbox"
-                    />
-                    <span>{item}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="space-y-3 rounded-[1.5rem] border border-[#dcc6b2] bg-white/75 p-5">
-              <legend className="px-2 text-sm font-medium text-[#5f473d]">
-                Ваши предпочтения по еде
-              </legend>
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                {["Птица", "Мясо", "Рыба"].map((item) => (
-                  <label
-                    key={item}
-                    className="inline-flex cursor-pointer items-center gap-3 rounded-full border border-[#d6c0ad] bg-[#fffaf6] px-4 py-3 text-sm text-[#5f473d]"
-                  >
-                    <input
-                      name="food"
-                      type="radio"
-                      className="h-4 w-4 accent-[#8e6650]"
-                    />
-                    <span>{item}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="space-y-3 rounded-[1.5rem] border border-[#dcc6b2] bg-white/75 p-5">
-              <legend className="px-2 text-sm font-medium text-[#5f473d]">
-                Нужен ли Вам трансфер?
-              </legend>
-              <div className="flex gap-3">
-                {["Да", "Нет"].map((item) => (
-                  <label
-                    key={item}
-                    className="inline-flex cursor-pointer items-center gap-3 rounded-full border border-[#d6c0ad] bg-[#fffaf6] px-4 py-3 text-sm text-[#5f473d]"
-                  >
-                    <input
-                      name="transfer"
-                      type="radio"
-                      className="h-4 w-4 accent-[#8e6650]"
-                    />
-                    <span>{item}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <div className="flex justify-center">
-              <button className="invite-button" type="submit">
-                Отправить
-              </button>
+              </LoveCard>
             </div>
+          </RevealOnScroll>
 
-            <p className="text-center text-sm leading-7 text-[#7a6154]">
-              Нажимая кнопку &quot;Отправить&quot;, Вы соглашаетесь с Политикой
-              конфиденциальности
-            </p>
-          </form>
-        </section>
-
-        <div className="h-4" />
-
-        <section className="invite-section p-6 sm:p-8 lg:p-10">
-          <SectionTitle
-            eyebrow="Контакты"
-            title="Если возникнут вопросы"
-            subtitle="В день мероприятия вы можете обратиться к нашему организатору."
-          />
-          <Separator />
-          <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr] lg:items-center">
-            <div className="space-y-3 text-center lg:text-left">
-              <p className="text-lg font-medium text-[#2f211a]">
-                Организатор Анастасия:
+          <RevealOnScroll>
+            <div className="mt-10">
+              <LoveH2>Будем рады видеть вас</LoveH2>
+              <p className="mt-3 text-center text-sm text-[#6b6254]">
+                Дата торжества: {EVENT_DATE_LABEL}
               </p>
-              <a
-                className="block text-2xl font-semibold tracking-[0.08em] text-[#8d6550]"
-                href="tel:+79999999999"
-              >
-                +7 (999) 999-99-99
-              </a>
-              <a
-                className="inline-flex items-center justify-center rounded-full border border-[#ccb4a0] bg-white/80 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#735341] transition hover:-translate-y-0.5 hover:bg-white"
-                href="https://wa.me/79999999999"
-                target="_blank"
-                rel="noreferrer"
-              >
-                WhatsApp
-              </a>
             </div>
+          </RevealOnScroll>
 
-            <div className="rounded-[1.6rem] border border-[#decab9] bg-[linear-gradient(180deg,#fff8f3,#f4e1d4)] p-5 shadow-[0_14px_34px_rgba(99,67,43,0.12)]">
-              <div className="grid gap-3 rounded-[1.3rem] border border-[#e6d6c9] bg-white/75 p-4 text-sm leading-7 text-[#6f5648]">
-                <p>
-                  Свои тёплые слова и пожелания приносите в сердцах, а подарки
-                  - в конверте.
+          <RevealOnScroll>
+            <div className="mt-10" id="place">
+              <LoveH2 kicker="Локация">{VENUE.name}</LoveH2>
+              <LoveCard className="mt-5 text-center">
+                <p className="font-medium text-[#2c261c]">{VENUE.lines[0]}</p>
+                <p className="mt-1 font-medium text-[#2c261c]">{VENUE.lines[1]}</p>
+                <a
+                  className="invite-button mt-6 w-full max-w-[280px]"
+                  href={mapHref}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Посмотреть на карте
+                </a>
+              </LoveCard>
+            </div>
+          </RevealOnScroll>
+
+          <RevealOnScroll>
+            <div className="mt-12">
+              <LoveH2 kicker="Программа">Тайминг дня</LoveH2>
+              <ul className="relative mt-8 space-y-0 pl-2">
+                <span
+                  className="absolute left-[5px] top-2 bottom-2 w-px bg-gradient-to-b from-[#c4b896] via-[#d8d0bc] to-transparent"
+                  aria-hidden="true"
+                />
+                {schedule.map((item) => (
+                  <li
+                    key={`${item.time}-${item.title}`}
+                    className="relative flex gap-4 pb-8 last:pb-0"
+                  >
+                    <span
+                      className="relative z-[1] mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-[#faf8f3] bg-[#b0b074] shadow-[0_0_0_1px_rgba(176,176,116,0.35)]"
+                      aria-hidden="true"
+                    />
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#8a7f6a]">
+                        {item.time}
+                      </p>
+                      <p className="mt-1 text-lg text-[#2c261c]">{item.title}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </RevealOnScroll>
+
+          <RevealOnScroll>
+            <div className="mt-12 space-y-5" id="details">
+              <LoveH2 kicker="Пожелания">Детали для гостей</LoveH2>
+              <LoveCard>
+                <p className="text-sm leading-7 text-[#4f463a]">
+                  Будем признательны за альтернативу букетам в виде бутылки вина или
+                  другого напитка и записки о событии, к которому приурочить его
+                  открытие.
                 </p>
-                <p>
-                  Для девушек: бежевые и пастельные оттенки. Для мужчин:
-                  черный низ и белая рубашка.
+              </LoveCard>
+              <LoveCard>
+                <p className="text-sm leading-7 text-[#4f463a]">
+                  Обратите внимание: формат мероприятия не предполагает детской площадки
+                  и аниматоров. Пожалуйста, позаботьтесь о том, чтобы провести этот
+                  вечер без детей.
                 </p>
-                <p>Помните, что в белом должна быть только невеста :)</p>
+              </LoveCard>
+              <LoveCard>
+                <p className="text-sm leading-7 text-[#4f463a]">
+                  Будем благодарны, если вы воздержитесь от криков «Горько!». Для нас
+                  поцелуй — знак чувств, он не может быть «по заказу».
+                </p>
+              </LoveCard>
+              <LoveCard>
+                <p className="text-sm leading-7 text-[#4f463a]">
+                  Просим воздержаться от ярких агрессивных цветов в одежде и отдать
+                  предпочтение спокойным тонам.
+                </p>
+              </LoveCard>
+            </div>
+          </RevealOnScroll>
+
+          <RevealOnScroll>
+            <div className="mt-12">
+              <LoveH2 kicker="Дресс-код">Цвета и стиль</LoveH2>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <LoveCard className="text-center">
+                  <p className="text-[0.65rem] uppercase tracking-[0.32em] text-[#8a7f6a]">
+                    Для девушек
+                  </p>
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {dressCodeForLadies.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full border border-[#dcd3c2] bg-[#faf6ef] px-3 py-1.5 text-sm text-[#4f463a]"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </LoveCard>
+                <LoveCard className="text-center">
+                  <p className="text-[0.65rem] uppercase tracking-[0.32em] text-[#8a7f6a]">
+                    Для мужчин
+                  </p>
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {dressCodeForMen.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full border border-[#dcd3c2] bg-[#faf6ef] px-3 py-1.5 text-sm text-[#4f463a]"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-sm text-[#6b6254]">
+                    Помните: в белом должна быть только невеста :)
+                  </p>
+                </LoveCard>
               </div>
             </div>
-          </div>
-        </section>
+          </RevealOnScroll>
+
+          <RevealOnScroll>
+            <div className="mt-12" id="rsvp">
+              <LoveH2 kicker="Анкета">
+                Ответьте, пожалуйста, на несколько вопросов
+              </LoveH2>
+              <form className="mt-6 space-y-6">
+                <LoveCard>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="block space-y-2">
+                      <span className="text-sm font-medium text-[#4a4338]">ФИО</span>
+                      <input
+                        className="invite-field"
+                        placeholder="Напишите, пожалуйста, ваши ФИО"
+                        type="text"
+                        autoComplete="name"
+                      />
+                    </label>
+                    <label className="block space-y-2">
+                      <span className="text-sm font-medium text-[#4a4338]">
+                        Телефон
+                      </span>
+                      <input
+                        className="invite-field"
+                        placeholder="+7 (999) 999-99-99"
+                        type="tel"
+                        autoComplete="tel"
+                      />
+                    </label>
+                  </div>
+                </LoveCard>
+
+                <LoveCard>
+                  <fieldset>
+                    <legend className="mb-3 text-sm font-medium text-[#4a4338]">
+                      Сможете ли присутствовать на нашем торжестве?
+                    </legend>
+                    <div className="flex flex-col gap-3">
+                      {[
+                        'Я с удовольствием приду',
+                        'К сожалению, не смогу присутствовать',
+                      ].map((item) => (
+                        <label
+                          key={item}
+                          className="inline-flex cursor-pointer items-center gap-3 rounded-xl border border-[#e2d8c8] bg-[#fffcf7] px-4 py-3 text-sm text-[#4a4338]"
+                        >
+                          <input
+                            name="attendance"
+                            type="radio"
+                            className="h-4 w-4 accent-[#8a8352]"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </LoveCard>
+
+                <LoveCard>
+                  <fieldset>
+                    <legend className="mb-3 text-sm font-medium text-[#4a4338]">
+                      Что предпочитаете из напитков?
+                    </legend>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {drinks.map((item) => (
+                        <label
+                          key={item}
+                          className="inline-flex cursor-pointer items-center gap-3 rounded-xl border border-[#e2d8c8] bg-[#fffcf7] px-4 py-3 text-sm text-[#4a4338]"
+                        >
+                          <input className="h-4 w-4 accent-[#8a8352]" type="checkbox" />
+                          <span>{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </LoveCard>
+
+                <LoveCard>
+                  <fieldset>
+                    <legend className="mb-3 text-sm font-medium text-[#4a4338]">
+                      Ваши предпочтения по еде
+                    </legend>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                      {['Птица', 'Мясо', 'Рыба'].map((item) => (
+                        <label
+                          key={item}
+                          className="inline-flex cursor-pointer items-center gap-3 rounded-full border border-[#e2d8c8] bg-[#fffcf7] px-4 py-3 text-sm text-[#4a4338]"
+                        >
+                          <input
+                            name="food"
+                            type="radio"
+                            className="h-4 w-4 accent-[#8a8352]"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </LoveCard>
+
+                <LoveCard>
+                  <fieldset>
+                    <legend className="mb-3 text-sm font-medium text-[#4a4338]">
+                      Нужен ли вам трансфер?
+                    </legend>
+                    <div className="flex flex-wrap gap-3">
+                      {['Да', 'Нет'].map((item) => (
+                        <label
+                          key={item}
+                          className="inline-flex cursor-pointer items-center gap-3 rounded-full border border-[#e2d8c8] bg-[#fffcf7] px-4 py-3 text-sm text-[#4a4338]"
+                        >
+                          <input
+                            name="transfer"
+                            type="radio"
+                            className="h-4 w-4 accent-[#8a8352]"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </LoveCard>
+
+                <div className="flex justify-center pt-2">
+                  <button className="invite-button px-10" type="submit">
+                    Отправить
+                  </button>
+                </div>
+                <p className="text-center text-xs leading-6 text-[#7a7160]">
+                  Нажимая «Отправить», вы соглашаетесь с политикой конфиденциальности.
+                </p>
+              </form>
+            </div>
+          </RevealOnScroll>
+
+          <RevealOnScroll>
+            <div className="mt-12 pb-8">
+              <LoveH2 kicker="Контакты">Организаторы</LoveH2>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <LoveCard>
+                  <p className="text-[0.65rem] uppercase tracking-[0.28em] text-[#8a7f6a]">
+                    Организатор
+                  </p>
+                  <p className="mt-2 font-medium text-[#2c261c]">Анастасия</p>
+                  <a
+                    className="mt-3 block text-lg font-semibold tracking-wide text-[#6b6338]"
+                    href="tel:+79999999999"
+                  >
+                    +7 (999) 999-99-99
+                  </a>
+                </LoveCard>
+                <LoveCard>
+                  <p className="text-[0.65rem] uppercase tracking-[0.28em] text-[#8a7f6a]">
+                    Ведущий
+                  </p>
+                  <p className="mt-2 font-medium text-[#2c261c]">Уточните имя</p>
+                  <a
+                    className="mt-3 block text-lg font-semibold tracking-wide text-[#6b6338]"
+                    href="tel:+79999999998"
+                  >
+                    +7 (999) 999-99-98
+                  </a>
+                </LoveCard>
+              </div>
+              <div className="mt-6 flex justify-center">
+                <a
+                  className="inline-flex items-center justify-center rounded-full border border-[#c4b896] bg-white/90 px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#5a5245] transition hover:-translate-y-0.5"
+                  href="https://wa.me/79999999999"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  WhatsApp
+                </a>
+              </div>
+            </div>
+          </RevealOnScroll>
+        </div>
       </div>
     </main>
-  );
+  )
 }
