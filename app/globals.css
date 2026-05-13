@@ -10,12 +10,13 @@
   --line: #f2a8a4;
 }
 
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Georgia, "Times New Roman", serif;
-  --font-mono: "Courier New", Courier, monospace;
   --color-green: #b0b074;
+  --font-pixel: var(--font-poiret-one);
 }
 
 html {
@@ -28,7 +29,7 @@ body {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-press-start-2p);
 }
 
 ::selection {
@@ -41,6 +42,30 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+.animate-spin {
+  animation: spin 13s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-scale {
+  animation: scale 2s ease-in-out infinite;
+}
+@keyframes scale {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
 }
 
 @keyframes invite-heart-pulse {
@@ -357,7 +382,7 @@ select {
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 50% 6%, rgba(230, 191, 189, 0.58), transparent 26rem),
+    radial-gradient(circle at 50% 3%, rgba(242, 159, 155, 0.78), transparent 28rem),
     #ffffff;
   color: var(--olive);
 }
@@ -427,9 +452,9 @@ select {
   margin: -1px auto 0;
   display: grid;
   place-items: center;
-  border-radius: 22px 22px 0 0;
+  border-radius: 22px;
   background: var(--olive);
-  padding: 12px 50px 0;
+  padding: 12px 50px;
 }
 
 .love-nameplate span {
@@ -447,35 +472,6 @@ select {
   place-items: center;
 }
 
-.love-frame {
-  position: relative;
-  width: min(430px, calc(100vw - 48px));
-  min-height: 610px;
-  margin: 0 auto;
-  border: 2px solid var(--line);
-  display: grid;
-  place-items: center;
-}
-
-.love-frame::before,
-.love-frame::after {
-  content: "♥";
-  position: absolute;
-  top: -19px;
-  color: var(--olive);
-  font-size: 36px;
-  line-height: 1;
-}
-
-.love-frame::before {
-  left: -2px;
-  transform: translateX(-50%);
-}
-
-.love-frame::after {
-  right: -2px;
-  transform: translateX(50%);
-}
 
 .love-panel {
   position: relative;
@@ -544,29 +540,7 @@ select {
   background: var(--olive);
 }
 
-.ring-box {
-  position: absolute;
-  left: 8px;
-  bottom: -48px;
-  width: 105px;
-  height: 115px;
-  transform: rotate(-8deg);
-  border: 12px solid var(--olive);
-  border-radius: 14px 14px 34px 34px;
-  background: #f8d4d4;
-  box-shadow: 12px 35px 0 -6px var(--olive);
-}
 
-.ring-box span {
-  position: absolute;
-  left: 48px;
-  bottom: 24px;
-  width: 26px;
-  height: 18px;
-  border-radius: 8px 8px 4px 4px;
-  background: #9dc8db;
-  transform: rotate(18deg);
-}
 
 .love-where {
   min-height: 610px;
@@ -883,13 +857,8 @@ select {
 }
 
 .love-countdown {
-  min-height: 820px;
   display: grid;
   place-items: center;
-}
-
-.love-frame--countdown {
-  min-height: 642px;
 }
 
 .ring-box--large {
@@ -923,11 +892,20 @@ select {
   text-align: center;
 }
 
+.love-timer__value {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: auto;
+  overflow: hidden;
+}
+
 .love-timer__item strong {
   display: block;
   color: var(--olive);
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   line-height: 1;
+  will-change: transform, opacity, filter;
 }
 
 .love-timer__item span {

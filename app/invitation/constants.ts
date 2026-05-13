@@ -2,13 +2,13 @@
 export const COUPLE_TITLE = 'Егор + Вероника'
 
 export const EVENT_DATE = {
-  day: '19',
+  day: '25',
   month: '07',
   year: '26',
 } as const
 
 export const EVENT_DATE_LABEL = `${EVENT_DATE.day}.${EVENT_DATE.month}.20${EVENT_DATE.year}`
-export const EVENT_DATE_TEXT = '19 июля 2026 г.'
+export const EVENT_DATE_TEXT = '25 июля 2026 г.'
 
 export const VENUE = {
   name: 'Ресторан «Ruski»',
