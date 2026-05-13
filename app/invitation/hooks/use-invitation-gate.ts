@@ -38,6 +38,8 @@ export const useInvitationGate = ({
         window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
       })
 
+      
+
       onAfterOpened()
     }, delay)
   }, [isOpened, isOpening, prefersReducedMotion, onAfterOpened])
