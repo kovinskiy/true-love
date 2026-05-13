@@ -862,6 +862,26 @@ select {
   font-weight: 700;
 }
 
+.love-form button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.love-form__message {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.love-form__message--success {
+  color: var(--olive-dark);
+}
+
+.love-form__message--error {
+  color: #b96868;
+}
+
 .love-countdown {
   min-height: 820px;
   display: grid;

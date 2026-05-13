@@ -1,6 +1,7 @@
 'use client'
 
-import type { KeyboardEvent } from 'react'
+import type { FormEvent, KeyboardEvent } from 'react'
+import { useState } from 'react'
 import {
   COUPLE_TITLE,
   dressCodeColors,
@@ -27,6 +28,16 @@ const wishes = [
   'Просим воздержаться вас от ярких агрессивных цветов в одежде и отдать предпочтение спокойным тонам.',
 ] as const
 
+const drinkOptions = [
+  'Красное вино',
+  'Белое вино',
+  'Шампанское',
+  'Водка',
+  'Виски',
+  'Коньяк',
+  'Не пью алкоголь',
+] as const
+
 export const InvitationBody = ({
   mapHref,
   musicLabel,
@@ -41,6 +52,52 @@ export const InvitationBody = ({
     if (event.key !== 'Enter' && event.key !== ' ') return
     event.preventDefault()
     onToggleMusic()
+  }
+
+  const [rsvpStatus, setRsvpStatus] = useState<
+    'idle' | 'submitting' | 'success' | 'error'
+  >('idle')
+  const [rsvpMessage, setRsvpMessage] = useState('')
+
+  const handleRsvpSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const form = event.currentTarget
+    const formData = new FormData(form)
+
+    setRsvpStatus('submitting')
+    setRsvpMessage('')
+
+    try {
+      const response = await fetch('/api/rsvp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.get('fullName'),
+          attendance: formData.get('attendance'),
+          transfer: formData.get('transfer'),
+          drinks: formData.getAll('drinks'),
+        }),
+      })
+      const result = (await response.json()) as { message?: string }
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Не удалось отправить ответ.')
+      }
+
+      setRsvpStatus('success')
+      setRsvpMessage(result.message || 'Ответ отправлен.')
+      form.reset()
+    } catch (error) {
+      setRsvpStatus('error')
+      setRsvpMessage(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось отправить ответ. Попробуйте позже.'
+      )
+    }
   }
 
   return (
@@ -176,25 +233,50 @@ export const InvitationBody = ({
             вопросов, которые мы для Вас подготовили
           </p>
           <div className="love-rsvp__arrow" aria-hidden="true">⌄</div>
-          <form className="love-form">
+          <form className="love-form" onSubmit={handleRsvpSubmit}>
             <label>
               <span>Напишите, пожалуйста, Ваши ФИО</span>
-              <input type="text" placeholder="ФИО" autoComplete="name" />
+              <input
+                type="text"
+                name="fullName"
+                placeholder="ФИО"
+                autoComplete="name"
+                required
+              />
             </label>
 
             <fieldset>
               <legend>Сможете ли присутствовать на нашем торжестве?</legend>
-              <label><input name="attendance" type="radio" /> Я с удовольствием приду</label>
-              <label><input name="attendance" type="radio" /> К сожалению, не смогу присутствовать</label>
+              <label><input name="attendance" type="radio" value="Приду" required /> Я с удовольствием приду</label>
+              <label><input name="attendance" type="radio" value="Не смогу" required /> К сожалению, не смогу присутствовать</label>
             </fieldset>
 
             <fieldset>
               <legend>Нужен ли Вам трансфер?</legend>
-              <label><input name="transfer" type="radio" /> Да</label>
-              <label><input name="transfer" type="radio" /> Нет</label>
+              <label><input name="transfer" type="radio" value="Да" required /> Да</label>
+              <label><input name="transfer" type="radio" value="Нет" required /> Нет</label>
             </fieldset>
 
-            <button type="submit">Отправить</button>
+            <fieldset>
+              <legend>Что предпочитаете из напитков?</legend>
+              {drinkOptions.map((drink) => (
+                <label key={drink}>
+                  <input name="drinks" type="checkbox" value={drink} /> {drink}
+                </label>
+              ))}
+            </fieldset>
+
+            <button type="submit" disabled={rsvpStatus === 'submitting'}>
+              {rsvpStatus === 'submitting' ? 'Отправляем...' : 'Отправить'}
+            </button>
+            {rsvpMessage ? (
+              <p
+                className={`love-form__message love-form__message--${rsvpStatus}`}
+                aria-live="polite"
+              >
+                {rsvpMessage}
+              </p>
+            ) : null}
           </form>
         </RevealOnScroll>
       </section>
