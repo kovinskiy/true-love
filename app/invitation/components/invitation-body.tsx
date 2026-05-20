@@ -7,7 +7,6 @@ import {
   COUPLE_TITLE,
   dressCodeColors,
   EVENT_DATE,
-  EVENT_DATE_LABEL,
   EVENT_DATE_TEXT,
   schedule,
   VENUE,
@@ -24,8 +23,7 @@ export type InvitationBodyProps = {
 }
 
 const wishes = [
-  'Обратите внимание, что формат мероприятия не предполагает детской площадки и аниматоров. Пожалуйста, позаботьтесь о том, чтобы провести этот вечер без детей.',
-  'Будем признательны за альтернативу букетам в форме бутылочки вина или другого приятного напитка и записки о событии, к которому приурочить ее открытие.',
+  'Дорогие гости, приносите с собой веселье и радость в душе, а подарки - в конверте!',
   'Будем благодарны, если Вы воздержитесь от криков "Горько!" на празднике. Для нас поцелуй - знак выражения чувств, он не может быть по заказу.',
   'Просим воздержаться вас от ярких агрессивных цветов в одежде и отдать предпочтение спокойным тонам.',
 ] as const
@@ -59,6 +57,14 @@ const EVENT_YEAR = 2000 + Number(EVENT_DATE.year)
 const EVENT_MONTH_INDEX = Number(EVENT_DATE.month) - 1
 const EVENT_DAY = Number(EVENT_DATE.day)
 const EVENT_START_DATE = new Date(EVENT_YEAR, EVENT_MONTH_INDEX, EVENT_DAY)
+const calendarWeeks = [
+  ['', '', '1', '2', '3', '4', '5'],
+  ['6', '7', '8', '9', '10', '11', '12'],
+  ['13', '14', '15', '16', '17', '18', '19'],
+  ['20', '21', '22', '23', '24', '25', '26'],
+  ['27', '28', '29', '30', '31', '', ''],
+] as const
+const calendarWeekdays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] as const
 const INITIAL_COUNTDOWN: Countdown = {
   days: 0,
   hours: 0,
@@ -146,6 +152,31 @@ const AnimatedCountdownNumber = ({
   )
 }
 
+const WeddingCalendar = () => (
+  <div className="love-calendar" aria-label="Дата свадьбы: 25 июля 2026">
+    <div className="love-calendar__script">25 июля 2026</div>
+    <span className="love-calendar__dot" aria-hidden="true" />
+    <div className="love-calendar__month">ИЮЛЬ, 2026</div>
+    <div className="love-calendar__grid" aria-hidden="true">
+      {calendarWeekdays.map((weekday) => (
+        <span className="love-calendar__weekday" key={weekday}>
+          {weekday}
+        </span>
+      ))}
+      {calendarWeeks.flatMap((week, weekIndex) =>
+        week.map((day, dayIndex) => (
+          <span
+            className={day === EVENT_DATE.day ? 'love-calendar__day love-calendar__day--event' : 'love-calendar__day'}
+            key={`${weekIndex}-${dayIndex}`}
+          >
+            {day}
+          </span>
+        ))
+      )}
+    </div>
+  </div>
+)
+
 type CountdownItemProps = {
   value: number
   labels: readonly [string, string, string]
@@ -227,6 +258,7 @@ export const InvitationBody = ({
           attendance: formData.get('attendance'),
           transfer: formData.get('transfer'),
           drinks: formData.getAll('drinks'),
+          comeRegister: formData.get('comeRegister'),
         }),
       })
       const result = (await response.json()) as { message?: string }
@@ -255,10 +287,10 @@ export const InvitationBody = ({
           <div className="love-hero__inner">
             <h1 className='text-6xl!'>НАША СВАДЬБА</h1>
             <div className="love-heart" aria-hidden="true">♥</div>
-            <p className="love-date">{EVENT_DATE_LABEL}</p>
+            <WeddingCalendar />
             <div className="love-couple">
               <img src="/images/egor.png" alt="Саша" />
-              <img src="/images/veronika.png" alt="Катя" />
+              <img src="/images/veronika2.png" alt="Катя" />
             </div>
             <div className="love-nameplate">
               <span>{COUPLE_TITLE}</span>
@@ -317,11 +349,11 @@ export const InvitationBody = ({
             </div>
             <div>
               <h2 className='flex items-center gap-2'>
-              <img className='animate-spin' src="/images/flower.png" alt="Когда?" />
+              <img className='animate-spin' src="/images/flower.png" alt="Где?" />
               Где?
               </h2>
               <p>{VENUE.name}</p>
-              <p>{VENUE.lines[0]}<br />{VENUE.lines[1]}</p>
+              <p>{VENUE.lines}</p>
             </div>
           </div>
           <a className="love-map-button" href={mapHref} target="_blank" rel="noreferrer">
@@ -370,7 +402,6 @@ export const InvitationBody = ({
                           <i key={color} style={{ backgroundColor: color }} />
                         ))}
                       </div>
-                      <div className="love-guests" aria-hidden="true" />
                     </>
                   ) : null}
                 </article>
@@ -403,10 +434,18 @@ export const InvitationBody = ({
               <legend>Сможете ли присутствовать на нашем торжестве?</legend>
               <label><input name="attendance" type="radio" value="Приду" required /> Я с удовольствием приду</label>
               <label><input name="attendance" type="radio" value="Не смогу" required /> К сожалению, не смогу присутствовать</label>
+              <label><input name="attendance" type="radio" value="Приду с парой" required /> Буду со своей парой</label>
+              <label><input name="attendance" type="radio" value="Сообщу позже" required /> Сообщу позже</label>
             </fieldset>
 
             <fieldset>
-              <legend>Нужен ли Вам трансфер?</legend>
+              <legend>Буду присутсвовать на регистрации?</legend>
+              <label><input name="comeRegister" type="radio" value="Да" required /> Да</label>
+              <label><input name="comeRegister" type="radio" value="Нет" required /> Нет</label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Нужен ли Вам трансфер от ЗАГСА?</legend>
               <label><input name="transfer" type="radio" value="Да" required /> Да</label>
               <label><input name="transfer" type="radio" value="Нет" required /> Нет</label>
             </fieldset>

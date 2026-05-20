@@ -419,11 +419,73 @@ select {
   line-height: 1;
 }
 
-.love-date {
-  margin-top: 38px;
-  color: #ffffff;
-  font-size: clamp(2rem, 3vw, 3rem);
+.love-calendar {
+  width: min(100%, 430px);
+  margin: 34px auto 0;
+  padding: 22px 42px 34px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #242424;
+  box-shadow: 0 16px 40px rgba(76, 88, 61, 0.12);
+}
+
+.love-calendar__script {
+  color: #1f1f1f;
+  font-size: clamp(2.1rem, 4.5vw, 3.3rem);
   line-height: 1;
+}
+
+.love-calendar__dot {
+  display: block;
+  width: 11px;
+  height: 11px;
+  margin: 46px auto 28px;
+  border-radius: 50%;
+  background: #000000;
+}
+
+.love-calendar__month {
+  margin-bottom: 24px;
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
+  line-height: 1;
+  font-weight: 700;
+}
+
+.love-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 16px 14px;
+  align-items: center;
+}
+
+.love-calendar__weekday,
+.love-calendar__day {
+  display: grid;
+  min-width: 28px;
+  min-height: 28px;
+  place-items: center;
+  font-size: clamp(1.05rem, 2.2vw, 1.55rem);
+  line-height: 1;
+  font-weight: 600;
+}
+
+.love-calendar__weekday {
+  font-weight: 700;
+}
+
+.love-calendar__day--event {
+  position: relative;
+}
+
+
+.love-calendar__day--event::after {
+  content: "";
+  position: absolute;
+  inset: -7px -3px -8px;
+  border: 2px solid #242424;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #242424;
+  
 }
 
 .love-couple {
@@ -965,9 +1027,22 @@ select {
     padding-top: 96px;
   }
 
+  .love-calendar {
+    width: min(100%, 330px);
+    padding: 18px 24px 28px;
+  }
+
+  .love-calendar__dot {
+    margin: 32px auto 22px;
+  }
+
+  .love-calendar__grid {
+    gap: 13px 8px;
+  }
+
   .love-couple {
     gap: 0;
-    margin-top: 112px;
+    margin-top: 86px;
   }
 
   .love-couple img {

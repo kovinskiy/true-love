@@ -45,7 +45,7 @@ export default function InvitationPage() {
     <main className="relative isolate min-h-screen overflow-x-hidden">
       <audio
         ref={audioRef}
-        src="/Blyadaval_-_Pisipopkikakashechki_80191459.mp3"
+        src="/Шадэ.mp3"
         preload="auto"
         loop
         onError={handleAudioError}

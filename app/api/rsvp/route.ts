@@ -3,6 +3,7 @@ type RsvpPayload = {
   attendance?: unknown
   transfer?: unknown
   drinks?: unknown
+  comeRegister?: unknown
 }
 
 const WIKI_API_BASE = 'https://api.wiki.yandex.net/v1'
@@ -43,8 +44,9 @@ export async function POST(request: Request) {
   const attendance = getTextValue(payload.attendance)
   const transfer = getTextValue(payload.transfer)
   const drinks = getTextListValue(payload.drinks)
+  const comeRegister = getTextValue(payload.comeRegister)
 
-  if (!fullName || !attendance || !transfer) {
+  if (!fullName || !attendance || !transfer || !comeRegister) {
     return Response.json({ message: 'Заполните все поля формы.' }, { status: 400 })
   }
 
@@ -70,6 +72,7 @@ export async function POST(request: Request) {
             attendance,
             transfer,
             drinks,
+            come_register: comeRegister,
           },
         ],
       }),
