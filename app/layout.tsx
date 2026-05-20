@@ -4,8 +4,8 @@ import './globals.css'
 import { Poiret_One } from 'next/font/google'
 
 export const metadata: Metadata = {
-  title: 'Приглашение на свадьбу Саши и Кати',
-  description: 'Свадебное приглашение в стиле Love is',
+  title: 'Приглашение на свадьбу Егора и Вероники',
+  description: 'Свадебное приглашение',
 }
 
 export const poiretOne = Poiret_One({
