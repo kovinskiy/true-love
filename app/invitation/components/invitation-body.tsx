@@ -328,7 +328,7 @@ export const InvitationBody = ({
                 Вас разделить с нами<br />
                 радость этого дня.
               </p>
-              <div className="absolute left-[-7%] animate-scale bottom-[-48px] w-[200px] h-[200px] transform rotate-[-8deg]" aria-hidden="true">
+              <div className="absolute left-[-11%] animate-scale bottom-[-48px] w-[200px] h-[200px] transform rotate-[-8deg]" aria-hidden="true">
                <img src="/images/photo.png" alt="Ring" />
               </div>
             </div>
