@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MUSIC_STORAGE_KEY } from '../constants'
 
+const MUSIC_VOLUME = 0.25
+
 export const useWeddingMusic = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [isMusicEnabled, setIsMusicEnabled] = useState(true)
@@ -37,7 +39,7 @@ export const useWeddingMusic = () => {
   )
 
   const tryPlay = useCallback(() => {
-    playWithVolume(1)
+    playWithVolume(MUSIC_VOLUME)
   }, [playWithVolume])
 
   const primeMusic = useCallback(() => {
@@ -56,9 +58,9 @@ export const useWeddingMusic = () => {
         setIsMusicPlaying(true)
 
         const step = () => {
-          audio.volume = Math.min(audio.volume + 0.08, 1)
+          audio.volume = Math.min(audio.volume + 0.08, MUSIC_VOLUME)
 
-          if (audio.volume < 1) window.setTimeout(step, 70)
+          if (audio.volume < MUSIC_VOLUME) window.setTimeout(step, 70)
         }
 
         step()
@@ -80,7 +82,7 @@ export const useWeddingMusic = () => {
       return
     }
 
-    audio.volume = 1
+    audio.volume = MUSIC_VOLUME
     const playPromise = audio.play()
     if (!playPromise) return
 

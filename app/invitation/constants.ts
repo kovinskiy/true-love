@@ -33,8 +33,8 @@ export const dressCodeColors = [
   '#cf9495',
   '#e2b2ae',
   '#f5edbb',
-  '#f0d9a7',
   '#efe2cd',
   '#d8c8b9',
   '#c5d8b0',
+  '#b9d6df',
 ] as const
