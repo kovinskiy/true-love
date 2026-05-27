@@ -499,8 +499,8 @@ select {
 }
 
 .love-couple img {
-  width: clamp(150px, 12vw, 220px);
-  height: 350px;
+  /* width: clamp(150px, 12vw, 220px); */
+  height: 250;
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 0 0 var(--olive)) drop-shadow(0 0 1px var(--olive));
@@ -1045,10 +1045,6 @@ select {
     margin-top: 86px;
   }
 
-  .love-couple img {
-    width: 48%;
-    height: 260px;
-  }
 
   .love-nameplate {
     min-height: 92px;
