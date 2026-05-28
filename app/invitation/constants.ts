@@ -14,6 +14,7 @@ export const VENUE = {
   name: 'Банкетный зал "Panorama Hall"',
   lines: 'п. Токсово, Полевая аллея 19 (въезд с ул. Разъезжая 15)',
   mapQuery: 'Банкетный зал "Panorama Hall" п. Токсово, Полевая аллея 19 (въезд с ул. Разъезжая 15)',
+  mapZags : 'Отдел-дворец регистрации актов гражданского состояния Пушкинского района Санкт-Петербурга Садовая ул., 22'
 } as const
 
 export const OPEN_ENVELOPE_MS = 1400
@@ -23,7 +24,7 @@ export const MUSIC_STORAGE_KEY = 'true-love:music-enabled'
 
 export const schedule = [
   { time: '12:40', title: 'Регистрация' },
-  { time: '-', title: 'Трансфер от ЗАГСА' },
+  { time: '13:30', title: 'Трансфер от ЗАГСА' },
   { time: '15:00', title: 'Сбор гостей' },
   { time: '16:00', title: 'Начало банкета' },
   { time: '23:00', title: 'Завершение' },

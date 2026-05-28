@@ -36,6 +36,11 @@ export default function InvitationPage() {
     return `https://yandex.ru/maps/?text=${query}`
   }, [])
 
+  const mapZags = useMemo(() => {
+    const query = encodeURIComponent(VENUE.mapZags)
+    return `https://yandex.ru/maps/?text=${query}`
+  }, [])
+
   const handleRequestOpen = () => {
     primeMusic()
     requestOpen()
@@ -64,6 +69,7 @@ export default function InvitationPage() {
 
       <InvitationBody
         mapHref={mapHref}
+        mapZags={mapZags}
         musicLabel={musicLabel}
         isMusicEnabled={isMusicEnabled}
         isMusicPlaying={isMusicPlaying}

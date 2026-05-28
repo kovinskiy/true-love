@@ -15,6 +15,7 @@ import { RevealOnScroll } from './reveal-on-scroll'
 
 export type InvitationBodyProps = {
   mapHref: string
+  mapZags : string
   musicLabel: string
   isMusicEnabled: boolean
   isMusicPlaying: boolean
@@ -201,6 +202,7 @@ const CountdownItem = ({
 
 export const InvitationBody = ({
   mapHref,
+  mapZags,
   musicLabel,
   isMusicEnabled,
   isMusicPlaying,
@@ -339,6 +341,14 @@ export const InvitationBody = ({
       <section className="love-section love-where">
         <RevealOnScroll>
           <div className="love-where__grid">
+          <div>
+              <h2 className='flex items-center gap-2'>
+                <img className='animate-spin' src="/images/flower.png" alt="Когда?" />
+              ЗАГС
+              </h2>
+              <p>Отдел-дворец регистрации актов гражданского состояния Пушкинского района Санкт-Петербурга
+              Садовая ул., 22</p>
+            </div>
             <div>
               <h2 className='flex items-center gap-2'>
                 <img className='animate-spin' src="/images/flower.png" alt="Когда?" />
@@ -357,7 +367,10 @@ export const InvitationBody = ({
             </div>
           </div>
           <a className="love-map-button" href={mapHref} target="_blank" rel="noreferrer">
-            Посмотреть на карте <span aria-hidden="true">→</span>
+            Посмотреть на карте зал <span aria-hidden="true">→</span>
+          </a>
+          <a className="love-map-button" href={mapZags} target="_blank" rel="noreferrer">
+            Посмотреть на карте ЗАГС <span aria-hidden="true">→</span>
           </a>
         </RevealOnScroll>
       </section>
