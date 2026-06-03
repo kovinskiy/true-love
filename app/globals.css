@@ -499,10 +499,26 @@ select {
 }
 
 .love-couple img {
-  width: clamp(180px, 12vw, 300px);
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+  max-width: calc(50% - 10px);
+  height: auto;
+  max-height: clamp(140px, 40vw, 300px);
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 0 0 var(--olive)) drop-shadow(0 0 1px var(--olive));
+}
+
+.love-couple img:first-child {
+  flex: 1.12 1 0;
+  max-width: calc(52% - 10px);
+  max-height: clamp(155px, 44vw, 330px);
+}
+
+.love-couple img:last-child {
+  flex: 0.88 1 0;
+  max-width: calc(48% - 10px);
 }
 
 .love-nameplate {
@@ -1044,6 +1060,18 @@ select {
     margin-top: 86px;
   }
 
+  .love-couple img {
+    max-height: clamp(110px, 32vw, 200px);
+  }
+
+  .love-couple img:first-child {
+    max-width: 52%;
+    max-height: clamp(125px, 35vw, 220px);
+  }
+
+  .love-couple img:last-child {
+    max-width: 48%;
+  }
 
   .love-nameplate {
     min-height: 92px;
