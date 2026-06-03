@@ -291,7 +291,7 @@ export const InvitationBody = ({
             <div className="love-heart" aria-hidden="true">♥</div>
             <WeddingCalendar />
             <div className="love-couple">
-              <img src="/images/egor1.png" alt="Саша" />
+              <img src="/images/egor.png" alt="Саша" />
               <img className='' src="/images/veronika3.png" alt="Катя" />
             </div>
             <div className="love-nameplate">

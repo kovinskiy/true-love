@@ -494,16 +494,11 @@ select {
   display: flex;
   align-items: end;
   justify-content: center;
-  gap: 20px;
   margin-top: 155px;
+
 }
 
 .love-couple img {
-  flex: 1 1 0;
-  min-width: 0;
-  width: 100%;
-  max-width: calc(50% - 10px);
-  height: auto;
   max-height: clamp(140px, 40vw, 300px);
   object-fit: contain;
   object-position: bottom center;
@@ -1057,20 +1052,29 @@ select {
 
   .love-couple {
     gap: 0;
+    width: min(100%, 350px);
+    margin-left: auto;
+    margin-right: auto;
     margin-top: 86px;
+    justify-content: space-between;
   }
 
   .love-couple img {
-    max-height: clamp(110px, 32vw, 200px);
+    flex: 0 0 48%;
+    width: 48%;
+    height: clamp(135px, 38vw, 168px);
+    max-width: none;
+    max-height: none;
   }
 
   .love-couple img:first-child {
-    max-width: 52%;
-    max-height: clamp(125px, 35vw, 220px);
+    width: 216px;
+    object-position: bottom center;
+    max-width : calc(60% - 10px)
   }
 
   .love-couple img:last-child {
-    max-width: 48%;
+    max-width: none;
   }
 
   .love-nameplate {
