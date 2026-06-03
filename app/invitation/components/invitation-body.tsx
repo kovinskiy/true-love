@@ -26,7 +26,7 @@ export type InvitationBodyProps = {
 const wishes = [
   'Дорогие гости, приносите с собой веселье и радость в душе, а подарки - в конверте!',
   'Будем благодарны, если Вы воздержитесь от криков "Горько!" на празднике. Для нас поцелуй - знак выражения чувств, он не может быть по заказу.',
-  'Просим воздержаться вас от ярких агрессивных цветов в одежде и отдать предпочтение спокойным тонам.',
+  'Просим воздержаться вас от ярких агрессивных цветов в одежде и отдать предпочтение спокойным тонам. <br/> Например : ',
 ] as const
 
 const drinkOptions = [
@@ -407,7 +407,7 @@ export const InvitationBody = ({
               {wishes.map((wish, index) => (
                 <article key={wish} className="love-wish">
                   <span aria-hidden="true">✿</span>
-                  <p>{wish}</p>
+                  <p dangerouslySetInnerHTML={{__html : wish}}></p>
                   {index === wishes.length - 1 ? (
                     <>
                       <div className="love-swatches" aria-label="Цвета дресс-кода">
